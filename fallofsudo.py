@@ -338,7 +338,7 @@ def sudofile():
         print(e.output)
         sys.exit(1)
 
-    sudoll = subprocess.check_output(['sudo' , '-ll'])
+    #sudoll = subprocess.check_output(['sudo' , '-ll'])
 
     # Saving sudoll output to file
     f.write(sudoll)
@@ -382,14 +382,10 @@ def sudoparse():
                         sudooutput.append({"runas_user": runas_user, "runas_group": runas_group, "options": options, "cmd": cmd,"fullcmd": fullcmd})
 
     sudooutput_dict = {item['cmd']: {k: v for k, v in item.items() if k != 'cmd'} for item in sudooutput}
-    # pprint(sudooutput_dict)
-
+    
     # Printing out SUDO rules for the user
     print(OKGREEN + "[!] " + username + " has the following sudo rules:" + ENDC)
-    # for item in sudooutput_dict.items():
-    #     print("start\n")
-    #     pprint(sudooutput_dict[item[0]])
-    #     print("ready\n")
+
     for itemrec in sudooutput_dict.items():
         item = sudooutput_dict[itemrec[0]]
         print(OKGREEN + "\n[!] RunAsUsers: " + ENDC + item['runas_user'])
